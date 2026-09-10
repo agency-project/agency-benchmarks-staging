@@ -7,7 +7,7 @@ Systems-performance benchmarks for agentic workflows built on
 
 ### Targeted
 
-Each targted benchmark focuses on stress-testing a single system resource.
+Each targeted benchmark focuses on stress-testing a single system resource.
 
 | Benchmark | Dimension | Dataset | Extra setup | Cheapest run |
 |---|---|---|---|---|
@@ -19,7 +19,7 @@ Each targted benchmark focuses on stress-testing a single system resource.
 ### End-to-end
 
 Each benchmark is an end-to-end agentic application built from several agents and tools, so it stresses many
-dimensions at once. Being refined before public release.
+dimensions at once. Currently being refined before public release.
 
 | Benchmark | Dimensions |
 |---|---|
@@ -31,7 +31,7 @@ dimensions at once. Being refined before public release.
 
 - Linux on x86_64 with cgroup v2. The profiler reads `/proc` and `/sys/fs/cgroup`; macOS and ARM are
   not supported.
-- Python 3.11+.
+- Python 3.12+.
 - Docker.
 - An API key for a model backend, as a single line in `api-key` at this directory. Every run makes
   billed LLM calls, one per agent step.
