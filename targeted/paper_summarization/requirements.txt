@@ -1,0 +1,10 @@
+# Agency, pinned by commit so a benchmark run is reproducible. Bump deliberately.
+# Point this at your own checkout or fork if you are developing against Agency itself:
+#   pip install -e /path/to/agency-staging[profiler]
+# [TODO] This fixed commit should be removed once upstream changes are finalized.
+agency[profiler] @ git+https://github.com/agency-project/agency-staging.git@d66f5363cf32d5b7c00bd669a5a584a1c5eb5786
+
+# Corpus extraction. Only prepare.py --corpus needs this: the TREC-COVID corpus is a
+# single 110 MB parquet shard, streamed by row batch so that only the pinned documents
+# are held in memory. The benchmark itself reads plain text files and needs none of it.
+pyarrow>=15

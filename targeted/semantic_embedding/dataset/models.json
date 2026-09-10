@@ -1,0 +1,55 @@
+{
+  "_comment": [
+    "The choice space this benchmark pins: which encoders exist, and how a document longer",
+    "than the window may be handled. Read by prepare.py (to download), benchmark.py (to",
+    "validate the agent's choice and render the prompt) and sandbox_runner.py (to execute),",
+    "so none of them can drift from the others.",
+    "",
+    "params_m, dim and max_seq_len are each encoder's published values; max_seq_len comes from",
+    "its sentence_bert_config.json. query_prefix is applied to queries only, as the bge model",
+    "cards instruct for retrieval -- omitting it costs several points of recall and would make",
+    "the comparison across encoders unfair.",
+    "",
+    "Encoders span 22M to 335M parameters so cost spans roughly 100x, which is what makes the",
+    "agent's choice measurable rather than cosmetic."
+  ],
+  "strategies": {
+    "truncate": "encode the first max_seq_len tokens only; one vector per document",
+    "chunk_mean": "overlapping windows, averaged into one vector per document",
+    "chunk_max": "overlapping windows kept separately; a document scores on its best chunk"
+  },
+  "encoders": {
+    "minilm-l6": {
+      "repo": "sentence-transformers/all-MiniLM-L6-v2",
+      "revision": "1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+      "params_m": 22.7,
+      "dim": 384,
+      "max_seq_len": 256,
+      "query_prefix": ""
+    },
+    "bge-small": {
+      "repo": "BAAI/bge-small-en-v1.5",
+      "revision": "5c38ec7c405ec4b44b94cc5a9bb96e735b38267a",
+      "params_m": 33.4,
+      "dim": 384,
+      "max_seq_len": 512,
+      "query_prefix": "Represent this sentence for searching relevant passages: "
+    },
+    "bge-base": {
+      "repo": "BAAI/bge-base-en-v1.5",
+      "revision": "a5beb1e3e68b9ab74eb54cfd186867f64f240e1a",
+      "params_m": 109.0,
+      "dim": 768,
+      "max_seq_len": 512,
+      "query_prefix": "Represent this sentence for searching relevant passages: "
+    },
+    "bge-large": {
+      "repo": "BAAI/bge-large-en-v1.5",
+      "revision": "d4aa6901d3a41ba39fb536a557fa166f842b0e09",
+      "params_m": 335.0,
+      "dim": 1024,
+      "max_seq_len": 512,
+      "query_prefix": "Represent this sentence for searching relevant passages: "
+    }
+  }
+}

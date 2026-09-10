@@ -1,0 +1,14 @@
+# Host-side dependencies only. The encoders, torch and sentence-transformers live in
+# the sandbox image (see Dockerfile) -- installing them here would not be used by a run
+# and would not be the versions the measurement is pinned to.
+
+# Agency, pinned by commit so a benchmark run is reproducible. Bump deliberately: a
+# different commit can change the measurement, not just the API.
+# Point this at your own checkout or fork if you are developing against Agency itself:
+#   pip install -e /path/to/agency-staging[profiler]
+agency[profiler] @ git+https://github.com/agency-project/agency-staging.git@d66f5363cf32d5b7c00bd669a5a584a1c5eb5786
+
+# Corpus selection. Only prepare.py --fetch needs these; the benchmark itself reads the
+# materialized files that were baked into the image.
+datasets>=2.18
+huggingface-hub>=0.23

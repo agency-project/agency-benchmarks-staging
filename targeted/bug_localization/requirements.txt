@@ -1,0 +1,13 @@
+# Agency, pinned by commit so a benchmark run is reproducible. Bump deliberately.
+# Point this at your own checkout or fork if you are developing against Agency itself:
+#   pip install -e /path/to/agency-staging[profiler]
+# [TODO] This fixed commit should be removed once upstream changes are finalized.
+agency[profiler] @ git+https://github.com/agency-project/agency-staging.git@d66f5363cf32d5b7c00bd669a5a584a1c5eb5786
+
+# Dataset selection. Only prepare.py --dataset needs this; the benchmark itself reads
+# the pinned JSONL.
+datasets>=2.18
+
+# Used to map an instance id to its official SWE-bench image tag. Optional: prepare.py
+# falls back to the documented naming rule when it is not installed.
+swebench>=2.1

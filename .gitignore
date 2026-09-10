@@ -1,0 +1,22 @@
+# Secrets
+api-key
+
+
+# Benchmark run artifacts: traces, summaries, results.
+# The output/ directories themselves are tracked via their .gitkeep.
+*/*/output/*
+!*/*/output/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Corpus materialized from a pinned selection by prepare.py -- large, and fully
+# reproducible from dataset/selection.json plus the upstream dataset.
+*/*/dataset/materialized/
+
+# HuggingFace / datasets caches, and downloaded model weights and tools
+.cache/

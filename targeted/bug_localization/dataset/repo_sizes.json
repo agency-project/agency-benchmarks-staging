@@ -1,0 +1,18 @@
+{
+  "_comment": "Approximate repository size in MB, from the GitHub API (repos/<r>.size, KB, includes git history). Used to bias instance selection toward large repos, since this benchmark stresses storage I/O and a small tree gives the agent little to navigate. Relative ranking is what matters, not absolute values; regenerate with: python prepare.py --repo-sizes",
+  "_generated": "2026-08-28",
+  "sizes_mb": {
+    "matplotlib/matplotlib": 491.0,
+    "django/django": 282.1,
+    "sympy/sympy": 194.9,
+    "scikit-learn/scikit-learn": 186.8,
+    "astropy/astropy": 186.5,
+    "sphinx-doc/sphinx": 108.9,
+    "mwaskom/seaborn": 54.6,
+    "pydata/xarray": 54.2,
+    "pytest-dev/pytest": 41.6,
+    "pylint-dev/pylint": 41.4,
+    "psf/requests": 13.6,
+    "pallets/flask": 12.4
+  }
+}

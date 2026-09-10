@@ -1,0 +1,13 @@
+# Keep the build context to what the Dockerfile actually COPYs: the encoder weights
+# under .cache/models, the materialized corpus, the two pinned JSON files and the
+# runner. Traces in output/ can reach hundreds of MB and would be sent to the daemon
+# on every build.
+output/
+__pycache__/
+*.pyc
+.venv/
+venv/
+README.md
+requirements.txt
+benchmark.py
+prepare.py

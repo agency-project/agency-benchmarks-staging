@@ -1,0 +1,7 @@
+# Keep the build context tiny: only .cache/rg is actually COPYed.
+output/
+dataset/
+__pycache__/
+*.pyc
+.venv/
+*.md
