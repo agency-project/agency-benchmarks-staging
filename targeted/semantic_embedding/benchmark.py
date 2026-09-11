@@ -68,7 +68,7 @@ RECORD_SCHEMA_VERSION = 1
 # covers all of them. The named backends stay for what it cannot express: SigV4 signing
 # (bedrock), Anthropic's own API, vLLM's /tokenize.
 DEFAULT_BACKEND = "openai"
-DEFAULT_LLM_MODEL = "gpt-5"
+DEFAULT_LLM_MODEL = "gpt-5.6-luna"
 # bedrock only. The other backends take a full endpoint in --base-url instead.
 DEFAULT_REGION = "us-east-2"
 DEFAULT_CONTEXT_LIMIT = 196000

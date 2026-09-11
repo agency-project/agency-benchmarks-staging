@@ -60,7 +60,7 @@ DOC_PATH = f"{CORPUS_MOUNT}/document.txt"
 # covers all of them. The named backends stay for what it cannot express: SigV4 signing
 # (bedrock), Anthropic's own API, vLLM's /tokenize.
 DEFAULT_BACKEND = "openai"
-DEFAULT_MODEL = "gpt-5"
+DEFAULT_MODEL = "gpt-5.6-luna"
 # bedrock only. The other backends take a full endpoint in --base-url instead.
 DEFAULT_REGION = "us-east-2"
 # Pinned, and not only to bound context: an unset context_limit makes agent.fork resolve it via

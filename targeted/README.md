@@ -51,7 +51,7 @@ All three `benchmark.py` accept these. Everything else is benchmark-specific.
 | Flag | Default | Purpose |
 |---|---|---|
 | `--base-url` | `$LLM_BASE_URL` | The endpoint |
-| `--model` | `$LLM_MODEL`, else `gpt-5` | The model driving the agent |
+| `--model` | `$LLM_MODEL`, else `gpt-5.6-luna` | The model driving the agent |
 | `--reasoning-effort` | `$LLM_REASONING_EFFORT` | `low`, `medium`, `high`. Unset sends nothing, i.e. the provider's default |
 | `--backend` | `openai` | `openai`, `bedrock`, `anthropic` or `vllm` |
 | `--harness` | `native` | Agency's own ReAct loop. External harnesses will be supported soon. |
