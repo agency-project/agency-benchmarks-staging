@@ -27,7 +27,7 @@ A research topic is answered by a group of `W` agents running at the same time, 
 
 ## Setup
 
-[../README.md](../README.md) covers the venv, the API key and the shared flags. This benchmark also
+[../README.md](../README.md) covers the venv, model access and the shared flags. This benchmark also
 needs:
 
 - **The `agency-sandbox:latest` image**, built from your Agency checkout (`./images/build.sh`). It is
@@ -116,7 +116,7 @@ Also reads `BENCH_WIDTHS`, `BENCH_TOPICS`, `BENCH_JOIN_MODE`, `BENCH_BASE_IMAGE`
 | `--topics` (`8`) / `--candidates` (`8`) / `--seed` (`24`) | The selection; needs `--dataset --force`. `--candidates` sets the maximum sweepable width |
 | `--base-image` (`agency-sandbox:latest`) | The image `--image` records and `--check` verifies |
 | `--corpus-dir` | `benchmark.py`'s `--corpus` under another name, since here `--corpus` selects the step |
-| `--backend` / `--model` / `--region` / `--context-limit` | Which model `--check` probes |
+| `--backend` / `--base-url` / `--model` / `--region` / `--context-limit` | Which model `--check` probes |
 
 ## Cleaning up
 

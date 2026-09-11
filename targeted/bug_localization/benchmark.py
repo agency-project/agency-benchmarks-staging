@@ -46,8 +46,13 @@ DATASET_FILE = HERE / "dataset" / "selected_instances.jsonl"
 MATERIALIZED_FILE = HERE / "dataset" / "materialized" / "instances.jsonl"
 OUTPUT_DIR = HERE / "output"
 
-DEFAULT_BACKEND = "bedrock"
-DEFAULT_MODEL = "minimax.minimax-m2.5"
+# Any OpenAI-compatible endpoint, set by three exports: LLM_BASE_URL, LLM_API_KEY and
+# LLM_MODEL. Nearly every provider and every local server speaks that protocol, so one setup
+# covers all of them. The named backends stay for what it cannot express: SigV4 signing
+# (bedrock), Anthropic's own API, vLLM's /tokenize.
+DEFAULT_BACKEND = "openai"
+DEFAULT_MODEL = "gpt-5.6-luna"
+# bedrock only. The other backends take a full endpoint in --base-url instead.
 DEFAULT_REGION = "us-east-2"
 DEFAULT_CONTEXT_LIMIT = 196000
 # Agency's own default is 4096, effectively unbounded for a benchmark: a confused agent
@@ -76,8 +81,20 @@ HARNESSES: "dict[str, object]" = {
 # --------------------------------------------------------------------------
 # configuration
 # --------------------------------------------------------------------------
+class ConfigError(RuntimeError):
+    """A missing or unusable backend setting. Reported without a traceback: the reader needs
+    the export they forgot, not this file's call stack."""
+
+
 def load_api_key() -> str:
-    """Read the single-line raw token from the benchmark suite root."""
+    """The provider's API key: $LLM_API_KEY, else the first of these files that exists.
+
+    The files remain for containers and CI, where an environment variable shows up in
+    `docker inspect` and a mounted secret does not.
+    """
+    key = os.environ.get("LLM_API_KEY", "").strip()
+    if key:
+        return key
     candidates = [
         Path(p)
         for p in (os.environ.get("AGENCY_BENCH_API_KEY_FILE"), "/run/secrets/api-key")
@@ -87,32 +104,67 @@ def load_api_key() -> str:
     for path in candidates:
         if path.is_file():
             return path.read_text().strip()
-    raise FileNotFoundError(f"api-key not found in any of: {[str(p) for p in candidates]}")
+    raise ConfigError(
+        "no API key. Export your provider's settings:\n"
+        "  export LLM_API_KEY=<key>\n"
+        f"or write the key to one of: {', '.join(str(p) for p in candidates)}"
+    )
 
 
-def build_llm_config(backend: str, model: str, region: str, context_limit: int):
+def reasoning_kwargs(reasoning_effort: str) -> dict:
+    """extra_body carrying *reasoning_effort*, or nothing when it is unset.
+
+    reasoning_effort is not a backend config field, but extra_body is, and agency merges it
+    into every chat.completions.create body -- which is where the OpenAI protocol puts it.
+    Left out entirely when unset: endpoints that do not know the field reject it.
+    """
+    if not reasoning_effort:
+        return {}
+    return {"extra_body": {"reasoning_effort": reasoning_effort}}
+
+
+def build_llm_config(backend: str, model: str, region: str, context_limit: int,
+                     base_url: str = "", reasoning_effort: str = ""):
     """Return the Agency backend config view for *backend*.
 
     Benchmarks in this suite are model- and backend-swappable by convention; nothing here
     hardcodes a provider.
     """
+    if backend == "openai":
+        # base_url is why this is the default: it points at any provider, gateway or local
+        # server serving /chat/completions, so no per-provider branch is needed here.
+        if not base_url:
+            raise ConfigError(
+                "the openai backend needs an endpoint. Export your provider's settings:\n"
+                "  export LLM_BASE_URL=https://<host>/v1\n"
+                "  export LLM_API_KEY=<key>\n"
+                "  export LLM_MODEL=<model>\n"
+                "or pass --base-url, or choose another --backend."
+            )
+        return agOpenAIBackendConfig(model=model, api_key=load_api_key(), base_url=base_url,
+                                     context_limit=context_limit,
+                                     **reasoning_kwargs(reasoning_effort))
     if backend == "bedrock":
         # The OpenAI-compatible Bedrock path reads this env var when no api_key kwarg
-        # is passed. minimax.* is not an Anthropic model id, so it routes that way.
+        # is passed, and routes by model id: anything that is not an Anthropic id goes
+        # through its OpenAI-compatible endpoint.
         os.environ["AWS_BEARER_TOKEN_BEDROCK"] = load_api_key()
         return agBedrockBackendConfig(region=region, model=model, context_limit=context_limit)
-    if backend == "openai":
-        return agOpenAIBackendConfig(model=model, api_key=load_api_key(), context_limit=context_limit)
     if backend == "anthropic":
         return agAnthropicBackendConfig(model=model, api_key=load_api_key(), context_limit=context_limit)
     if backend == "vllm":
+        # Same protocol as openai, plus /tokenize for exact token counts. A local server
+        # usually wants no key at all, so an empty one is allowed here and nowhere else.
+        if not base_url:
+            raise ConfigError("the vllm backend needs --base-url (or $LLM_BASE_URL)")
         return agVLLMBackendConfig(
-            base_url=os.environ["LLM_BASE_URL"],
+            base_url=base_url,
             model=model,
             api_key=os.environ.get("LLM_API_KEY", ""),
             context_limit=context_limit,
+            **reasoning_kwargs(reasoning_effort),
         )
-    raise ValueError(f"unknown backend {backend!r}; valid: bedrock, openai, anthropic, vllm")
+    raise ConfigError(f"unknown backend {backend!r}; valid: openai, bedrock, anthropic, vllm")
 
 
 def probe_model(llm_config, base_image: str | None = None) -> str:
@@ -324,7 +376,9 @@ def run_instance(inst: dict, llm_config, args, inst_out: Path) -> dict:
         "repo": inst["repo"],
         "harness": args.harness,
         "backend": args.backend,
+        "base_url": args.base_url,
         "model": args.model,
+        "reasoning_effort": args.reasoning_effort,
         "max_steps": args.max_steps,
     }
 
@@ -453,8 +507,15 @@ def write_aggregate(records: list[dict], out_dir: Path) -> None:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--backend", default=os.environ.get("BENCH_BACKEND", DEFAULT_BACKEND),
-                   help="LLM backend: bedrock, openai, anthropic, vllm")
-    p.add_argument("--model", default=os.environ.get("BENCH_MODEL", DEFAULT_MODEL))
+                   choices=("openai", "bedrock", "anthropic", "vllm"),
+                   help=f"LLM backend (default {DEFAULT_BACKEND}: any OpenAI-compatible endpoint)")
+    p.add_argument("--base-url", default=os.environ.get("LLM_BASE_URL", ""),
+                   help="the endpoint, e.g. https://<host>/v1 ($LLM_BASE_URL)")
+    p.add_argument("--model", default=os.environ.get("LLM_MODEL", DEFAULT_MODEL),
+                   help=f"model id as your provider names it ($LLM_MODEL, default {DEFAULT_MODEL})")
+    p.add_argument("--reasoning-effort", default=os.environ.get("LLM_REASONING_EFFORT", ""),
+                   help="reasoning effort for a thinking model, e.g. low, medium, high "
+                        "($LLM_REASONING_EFFORT; unset means the provider's own default)")
     p.add_argument("--harness", default=os.environ.get("BENCH_HARNESS", "native"),
                    help="agent harness to drive (see HARNESSES in this file)")
     p.add_argument("--region", default=os.environ.get("BENCH_REGION", DEFAULT_REGION))
@@ -492,13 +553,20 @@ def main() -> int:
 
     # Built last: it reads the API key, so cheap argument and dataset errors should
     # surface first rather than being masked by a missing-credentials failure.
-    llm_config = build_llm_config(args.backend, args.model, args.region, args.context_limit)
+    try:
+        llm_config = build_llm_config(args.backend, args.model, args.region,
+                                      args.context_limit, args.base_url,
+                                      args.reasoning_effort)
+    except ConfigError as e:
+        sys.exit(str(e))
 
     # Keyed by harness/model so sweeps produce siblings instead of clobbering.
     run_dir = args.out / args.harness / args.model.replace("/", "_").replace(":", "_")
     run_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"harness={args.harness}  backend={args.backend}  model={args.model}")
+    print(f"base_url={args.base_url or 'n/a'}  "
+          f"reasoning_effort={args.reasoning_effort or 'provider default'}")
     print(f"instances={len(instances)}  max_steps={args.max_steps}")
     print(f"output={run_dir}")
     if args.drop_caches:

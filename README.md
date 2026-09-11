@@ -33,7 +33,7 @@ dimensions at once. Currently being refined before public release.
   not supported.
 - Python 3.12+.
 - Docker.
-- An API key for a model backend, as a single line in `api-key` at this directory. Every run makes
+- An OpenAI-compatible model endpoint, as a `base_url`, an `api_key` and a `model`. Every run makes
   billed LLM calls, one per agent step.
 
 ## Quickstart
@@ -49,7 +49,9 @@ git -C agency-staging checkout d66f5363cf32d5b7c00bd669a5a584a1c5eb5786
 Then run the cheapest benchmark, for example, paper summarization with one topic at width 1 and two agent runs:
 
 ```bash
-printf '%s' "$BEDROCK_BEARER_TOKEN" > api-key
+export LLM_BASE_URL=https://api.openai.com/v1   # any OpenAI-compatible endpoint
+export LLM_API_KEY=<key>
+export LLM_MODEL=gpt-5
 
 cd targeted/paper_summarization
 python3 -m venv .venv && source .venv/bin/activate
@@ -62,14 +64,14 @@ python benchmark.py --topics 1 --widths 1
 ## Results
 
 ```
-output/native/minimax.minimax-m2.5/1/W1/t1/
+output/native/gpt-5/1/W1/t1/
   profiler/*.pt.trace.json     open in ui.perfetto.dev
   profiler/summary.{json,md}   profiler metrics, machine- and human-readable
   result.json                  metrics and the full run config
   agent_logs/                  per-agent conversation and tool timeline
 ```
 
-The output path directory is ordered by the harness name followed by the model name. Here, `native` is the ReAct-loop-based harness implemented by Agency and `minimax.minimax-m2.5` is the model. Change either one and the next run writes to a new directory.
+The output path directory is ordered by the harness name followed by the model name. Here, `native` is the ReAct-loop-based harness implemented by Agency and `gpt-5` is the model. Change either one and the next run writes to a new directory.
 
 ## Coming soon
 
