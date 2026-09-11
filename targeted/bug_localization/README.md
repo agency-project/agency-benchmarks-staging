@@ -28,7 +28,7 @@ the trace are the result.
 
 ## Setup
 
-[../README.md](../README.md) covers the venv, the API key and the shared flags. This benchmark also
+[../README.md](../README.md) covers the venv, model access and the shared flags. This benchmark also
 needs:
 
 - **About 25 GB of disk** for the images, and your user in the `docker` group.
@@ -102,7 +102,7 @@ output/<harness>/<model>/<instance_id>/
 | `--check` | Check the repository path, the profiler and the model before a run |
 | `--force` | Reselect the instances, rebuild images, re-download `ripgrep` |
 | `--seed` (`24`) / `--min-repo-mb` (`100`) | The selection; needs `--dataset --force` |
-| `--backend` / `--model` / `--region` / `--context-limit` | Which model `--check` probes |
+| `--backend` / `--base-url` / `--model` / `--region` / `--context-limit` | Which model `--check` probes |
 
 The dataset is 12 SWE-bench Verified instances, 3 from each of its 4 difficulty buckets, chosen under a
 fixed seed, preferring repositories of at least 100 MB. `dataset/selected_instances.jsonl` records the choice and is committed; it holds identifiers only. The issue text and gold patches are upstream content, so `prepare.py --dataset` fetches them into `dataset/materialized/` instead of committing them.

@@ -33,7 +33,7 @@ configuration that reaches it **at the lowest CPU cost**. If a smaller encoder o
 
 ## Setup
 
-[../README.md](../README.md) covers the venv, the API key and the shared flags. This benchmark also
+[../README.md](../README.md) covers the venv, model access and the shared flags. This benchmark also
 needs:
 
 - **Network access** to Hugging Face, PyPI, Docker Hub and GitHub, during `prepare.py` only. A measured

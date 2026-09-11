@@ -462,8 +462,9 @@ def cmd_check(args: argparse.Namespace) -> int:
         model = args.model or benchmark.DEFAULT_MODEL
         region = args.region or benchmark.DEFAULT_REGION
         context_limit = args.context_limit or benchmark.DEFAULT_CONTEXT_LIMIT
-        print(f"       {backend} / {model}")
-        cfg = benchmark.build_llm_config(backend, model, region, context_limit)
+        print(f"       {backend} / {model} / {args.base_url or 'no base_url'}")
+        cfg = benchmark.build_llm_config(backend, model, region, context_limit,
+                                        args.base_url, args.reasoning_effort)
         reply = benchmark.probe_model(cfg, base_image=image)
         _ok(f"model responded ({reply!r})")
     except Exception as e:
@@ -722,8 +723,12 @@ def main() -> int:
     # make agency a hard dependency of --dataset/--corpus/--image, none of which need it.
     p.add_argument("--backend", default=os.environ.get("BENCH_BACKEND"),
                    help="backend to probe in --check (default: benchmark.py's)")
-    p.add_argument("--model", default=os.environ.get("BENCH_MODEL"),
-                   help="model to probe in --check (default: benchmark.py's)")
+    p.add_argument("--base-url", default=os.environ.get("LLM_BASE_URL", ""),
+                   help="the endpoint to probe in --check ($LLM_BASE_URL)")
+    p.add_argument("--model", default=os.environ.get("LLM_MODEL"),
+                   help="model to probe in --check ($LLM_MODEL, default: benchmark.py's)")
+    p.add_argument("--reasoning-effort", default=os.environ.get("LLM_REASONING_EFFORT", ""),
+                   help="reasoning effort to probe with ($LLM_REASONING_EFFORT)")
     p.add_argument("--region", default=os.environ.get("BENCH_REGION"))
     p.add_argument("--context-limit", type=int, default=None)
     args = p.parse_args()

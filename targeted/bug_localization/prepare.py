@@ -328,8 +328,9 @@ def cmd_check(args: argparse.Namespace) -> int:
             model = args.model or benchmark.DEFAULT_MODEL
             region = args.region or benchmark.DEFAULT_REGION
             context_limit = args.context_limit or benchmark.DEFAULT_CONTEXT_LIMIT
-            print(f"       {backend} / {model}")
-            cfg = benchmark.build_llm_config(backend, model, region, context_limit)
+            print(f"       {backend} / {model} / {args.base_url or 'no base_url'}")
+            cfg = benchmark.build_llm_config(backend, model, region, context_limit,
+                                            args.base_url, args.reasoning_effort)
             # Reuse the image from check 1: agskill provisions a sandbox even for a
             # tool-less skill, and agency's default image may not be built here.
             reply = benchmark.probe_model(cfg, base_image=image)
@@ -589,8 +590,12 @@ def main() -> int:
     # need it; resolving there keeps preflight probing exactly what benchmark.py will run.
     p.add_argument("--backend", default=os.environ.get("BENCH_BACKEND"),
                    help="backend to probe in --check (default: benchmark.py's)")
-    p.add_argument("--model", default=os.environ.get("BENCH_MODEL"),
-                   help="model to probe in --check (default: benchmark.py's)")
+    p.add_argument("--base-url", default=os.environ.get("LLM_BASE_URL", ""),
+                   help="the endpoint to probe in --check ($LLM_BASE_URL)")
+    p.add_argument("--model", default=os.environ.get("LLM_MODEL"),
+                   help="model to probe in --check ($LLM_MODEL, default: benchmark.py's)")
+    p.add_argument("--reasoning-effort", default=os.environ.get("LLM_REASONING_EFFORT", ""),
+                   help="reasoning effort to probe with ($LLM_REASONING_EFFORT)")
     p.add_argument("--region", default=os.environ.get("BENCH_REGION"))
     p.add_argument("--context-limit", type=int, default=None)
     args = p.parse_args()
